@@ -72,6 +72,8 @@ $stmt->close();
         <?php include 'sidebar.php'; ?>
 
         <!-- Main Section -->
+        <!-- <div class="container py-5"> -->
+
         <div class="container py-5">
         <?php
             if (isset($_SESSION['success_message'])) {
