@@ -18,16 +18,16 @@ $user = $users->fetch_assoc();
 
 
 
-// $query = "SELECT * FROM tasks WHERE user_id = ?";
-    $query = "
-    SELECT tasks.*, 
-           users.*, 
-           TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked
-    FROM tasks
-    JOIN users ON tasks.user_id = users.id
-    WHERE tasks.user_id = ?
-";
-$query_employer = "SELECT * FROM tasks";
+$query = "SELECT * FROM tasks WHERE user_id = ?";
+//     $query = "
+//     SELECT tasks.*, 
+//            users.*, 
+//            TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked
+//     FROM tasks
+//     JOIN users ON tasks.user_id = users.id
+//     WHERE tasks.user_id = ?
+// ";
+$query_employer = "SELECT *,TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked FROM tasks";
 if($role=="employee"){
 $stmt = $db->prepare($query);
 $stmt->bind_param("i", $userId);
@@ -61,6 +61,7 @@ $tasks = $stmt->get_result();
                                     <th>Task</th>
                                     <th>Start Time</th>
                                     <th>End Time</th>
+                                    <th>Turnarround Time</th>
                                     <th>Status</th>
                                     
                                 </tr>
@@ -77,6 +78,7 @@ $tasks = $stmt->get_result();
                                             <td>{$task['task_name']}</td>
                                             <td>{$task['start_time']}</td>
                                             <td>{$task['end_time']}</td>
+                                            <td>{$task['hours_worked']}</td>
                                             <td>{$task['status']}</td>
                                             
                                         </tr>";
