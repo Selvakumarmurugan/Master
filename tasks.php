@@ -22,7 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query = "INSERT INTO tasks (user_id, task_name, start_time, end_time) VALUES (?, ?, ?, ?)";
         $stmt = $db->prepare($query);
         $stmt->bind_param("isss", $userId, $taskName, $startTime, $endTime);
-        $stmt->execute();
+        if($stmt->execute()){
+            $_SESSION['success_message'] = "Task added successfully!";
+            header("Location: tasks.php");
+            exit;
+        }else{
+            $_SESSION['error_message'] = "Failed to add the task.";
+            header("Location: tasks.php");
+            exit;
+        }
     } elseif ($action === 'edit') {
         $taskId = $_POST['task_id'];
         $taskName = $_POST['task_name'];
@@ -37,12 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query = "DELETE FROM tasks WHERE id = ? AND user_id = ?";
         $stmt = $db->prepare($query);
         $stmt->bind_param("ii", $taskId, $userId);
-        $stmt->execute();
+
+        if($stmt->execute()){
+            $_SESSION['success_message'] = "Task deleted successfully!";
+            header("Location: tasks.php");
+            exit;
+        }else{
+            $_SESSION['error_message'] = "Failed to delete the task.";
+            header("Location: tasks.php");
+            exit;
+        }
+
     }
 }
 
 // Fetch tasks
-$query = "SELECT * FROM tasks WHERE user_id = ?";
+    $query = "
+    SELECT *, TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked 
+    FROM tasks 
+    WHERE user_id = ?
+    ";
+
+
 $stmt = $db->prepare($query);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -51,20 +75,9 @@ $tasks = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Tasks</title>
-    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="d-flex">
-<?php include 'sidebar.php' ?>
-<div class="container py-5">
+
+<?php include 'header.php' ?>
+
     <h2 class="mb-4">Manage Tasks</h2>
 
     <!-- Add Task Form -->
@@ -87,13 +100,14 @@ $stmt->close();
     </form>
 
     <!-- Tasks Table -->
-    <table id="tasksTable" class="table table-striped">
+    <table id="timeSheetTable" class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Task Name</th>
                 <th>Start Time</th>
                 <th>End Time</th>
+                <th>Turnarround Time</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -105,6 +119,15 @@ $stmt->close();
                 <td><?php echo $task['task_name']; ?></td>
                 <td><?php echo $task['start_time']; ?></td>
                 <td><?php echo $task['end_time']; ?></td>
+                <td>
+                <?php 
+                    if ($task['end_time'] != "00:00:00") {
+                        echo $task['hours_worked'];
+                    } else {
+                        echo "00:00:00"; // Or any other placeholder text
+                    }
+                    ?>
+                </td>
                 <td>
                     <form method="POST" action="update_task.php" style="display:inline;">
                         <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
@@ -133,37 +156,8 @@ $stmt->close();
 </div>
 </div>
 
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<?php include("footer.php");  ?>
 
-<script>
-    $(document).ready(function () {
-        $('#tasksTable').DataTable({
-            dom: 'Bfrtip',
-            buttons: [
-                 'excel', 'pdf', 'print'
-            ],
-            pageLength: 5
-        });
-        
-    });
-
-    function confirmDelete() {
-        <?php if ($isEmployer) { ?>
-            return confirm("Are you sure you want to delete this task?");
-        <?php } else { ?>
-            alert("You do not have access to delete this task.");
-            return false; // Prevent form submission or deletion
-        <?php } ?>
-    }
-</script>
 
 
 </body>

@@ -23,8 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sii", $status, $taskId, $userId);
     }
 
-    $stmt->execute();
-    header("Location: tasks.php");
-    exit;
+    if($stmt->execute()){
+        $_SESSION['success_message'] = "Task updated successfully!";
+        header("Location: tasks.php");
+        exit;
+    }else{
+        $_SESSION['error_message'] = "Failed to update the task.";
+        header("Location: tasks.php");
+        exit;
+    }
+    
 }
 ?>

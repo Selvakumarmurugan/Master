@@ -29,7 +29,7 @@
         <!-- Navigation for toggling -->
         <div class="text-center mb-4">
             <button class="btn btn-link" onclick="toggleForm('signin')">Sign In</button>
-            <button class="btn btn-link" onclick="toggleForm('signup')">Sign Up</button>
+            <!-- <button class="btn btn-link" onclick="toggleForm('signup')">Sign Up</button> -->
         </div>
 
         <!-- Sign In Form -->
@@ -37,11 +37,11 @@
             <form action="auth.php" method="POST">
                 <div class="mb-3">
                     <label for="signin_email" class="form-label">Email:</label>
-                    <input type="email" id="signin_email" name="email" class="form-control" required>
+                    <input type="email" id="signin_email" name="email" placeholder="employer@gmail.com" class="form-control" required>
                 </div>
                 <div class="mb-3">
                     <label for="signin_password" class="form-label">Password:</label>
-                    <input type="password" id="signin_password" name="password" class="form-control" required>
+                    <input type="password" id="signin_password" name="password" placeholder="123456" class="form-control" required>
                 </div>
                 <button type="submit" name="action" value="signin" class="btn btn-success w-100">Sign In</button>
             </form>

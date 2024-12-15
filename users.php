@@ -9,41 +9,50 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Tasks</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="d-flex">
-<?php include 'sidebar.php' ?>
-<div class="container py-5">
-    <h2 class="mb-3">Users</h2>
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>User ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <?php
-                            $query = "SELECT * FROM users";
-                            $result = $db->query($query);
-                            while ($row = $result->fetch_assoc()) {
-                                echo "<tr>
-                                        <td>{$row['id']}</td>
-                                        <td>{$row['name']}</td>
-                                        <td>{$row['email']}</td>
-                                        <td>{$row['role']}</td>
-                                    </tr>";
-                            }
-                            ?>
-                            </tbody>
-                        </table>
-                        </div>
-                        </div>
+<?php include("header.php"); ?>
+
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <h2 class="mb-3">Users</h2> 
+    <a href="add_user.php" class='btn btn-sm btn-primary'>Add user</a>
+    </div>
+    <table id="timeSheetTable" class="table table-bordered table-striped">
+    <thead>
+        <tr> 
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php
+    $query = "SELECT * FROM users";
+    $result = $db->query($query);
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>
+                <td>{$row['id']}</td>
+                <td><a href='user.php?id={$row['id']}'>{$row['user_name']}</a></td>
+                <td>{$row['email']}</td>
+                <td>{$row['role']}</td>
+                <td>
+                    <a href='edit_user.php?id={$row['id']}' class='btn btn-sm btn-primary'>Edit</a>
+                    <a href='delete_user.php?id={$row['id']}' class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure you want to delete this user?\")'>Delete</a>
+                </td>
+              </tr>";
+    }
+    ?>
+    </tbody>
+</table>
+
+        </div>
+    </div>
+
+   
+    <?php include("footer.php");  ?>
+
+
+                        </body>
+                        </html>

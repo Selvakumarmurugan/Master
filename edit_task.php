@@ -23,28 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $startTime = $_POST['start_time'];
     $endTime = $_POST['end_time'];
 
-    $updateQuery = "UPDATE tasks SET task = ?, start_time = ?, end_time = ? WHERE id = ? AND employee_id = ?";
+    $updateQuery = "UPDATE tasks SET task_name = ?, start_time = ?, end_time = ? WHERE id = ? AND user_id = ?";
     $stmt = $db->prepare($updateQuery);
     $stmt->bind_param("sssii", $taskName, $startTime, $endTime, $taskId, $userId);
-    $stmt->execute();
-
-    header("Location: tasks.php");
-    exit;
+    if($stmt->execute()){
+        $_SESSION['success_message'] = "Task updated successfully!";
+        header("Location: tasks.php");
+        exit;
+    }else{
+        $_SESSION['error_message'] = "Failed to update the task.";
+        header("Location: tasks.php");
+        exit;
+    }
 }
 ?>
+ 
+ <?php include 'header.php'; ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Task</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<div class="d-flex">
-<?php include 'sidebar.php' ?>
-<div class="container py-5">
     <h2>Edit Task</h2>
     <form method="POST">
         <div class="mb-3">

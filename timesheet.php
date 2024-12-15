@@ -14,14 +14,33 @@ $userId = $_SESSION['user_id'];
 if ($action === 'in_time') {
     // Insert In-Time for the day
     $time = date("Y-m-d H:i:s");
+    $datetime = $time;
+    list($date, $times) = explode(' ', $datetime);
+// echo $date;exit;
+
+
+//    echo $time;exit;
+    $query_check = "SELECT * FROM timesheets WHERE DATE(in_time) LIKE ? AND employee_id = ?";
+    $stmt = $db->prepare($query_check);
+    $stmt->bind_param("si", $date,$userId); 
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 0) {
+
     $query = "INSERT INTO timesheets (employee_id, in_time) VALUES (?, ?)";
     $stmt = $db->prepare($query);
     $stmt->bind_param("is", $userId, $time);
+
     if ($stmt->execute()) {
-        $_SESSION['success_message'] = "In-Time recorded successfully!";
+        $_SESSION['success_message'] = "In-Time recorded successfully!"; 
     } else {
         $_SESSION['error_message'] = "Failed to record In-Time.";
     }
+    }else{
+        $_SESSION['error_message'] = "Already record  to out-Time.";
+    }
+
 } elseif ($action === 'out_time') {
     // Update Out-Time for the day
     $time = date("Y-m-d H:i:s");

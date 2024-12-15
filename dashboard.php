@@ -18,7 +18,15 @@ $user = $users->fetch_assoc();
 
 
 
-$query = "SELECT * FROM tasks WHERE user_id = ?";
+// $query = "SELECT * FROM tasks WHERE user_id = ?";
+    $query = "
+    SELECT tasks.*, 
+           users.*, 
+           TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked
+    FROM tasks
+    JOIN users ON tasks.user_id = users.id
+    WHERE tasks.user_id = ?
+";
 $query_employer = "SELECT * FROM tasks";
 if($role=="employee"){
 $stmt = $db->prepare($query);
@@ -32,98 +40,21 @@ $tasks = $stmt->get_result();
 }
 
 
-// Check in-time status for current day
- $query = "SELECT * FROM timesheets WHERE employee_id = ? AND DATE(in_time) = CURDATE() ";
-// $query = "SELECT * FROM timesheets WHERE employee_id = 1 AND out_time IS NULL";
-$stmt = $db->prepare($query);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
 
-
-$hasInTime = $result->num_rows > 0;
-$timesheet = $result->fetch_assoc();
-
-
-$activeDay = $hasInTime && empty($timesheet['out_time']);
-$stmt->close();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .timer {
-            font-size: 1.5rem;
-            color: green;
-        }
-        .top-bar {
-            width : 75%;    
-        }
-    </style>
-</head>
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <?php include 'sidebar.php'; ?>
+<?php include 'header.php' ?>
+  
 
-        <!-- Main Section -->
-        <!-- <div class="container py-5"> -->
 
-        <div class="container py-5">
-        <?php
-            if (isset($_SESSION['success_message'])) {
-                echo '<div id="successMessage" class="alert alert-success" role="alert">' . 
-                    $_SESSION['success_message'] . 
-                    '</div>';
-                unset($_SESSION['success_message']); // Clear the message
-            }
-
-            // Display error message, if any
-            if (isset($_SESSION['error_message'])) {
-                echo '<div class="alert alert-danger" role="alert">' . 
-                    $_SESSION['error_message'] . 
-                    '</div>';
-                unset($_SESSION['error_message']); // Clear the message
-            }
-
-            ?>
-            <div class="d-flex justify-content-between align-items-center" style="gap: 20px; padding: 10px;">
-                <!-- User Image -->
-                <img src="assets/img/user.jpg" alt="User Image" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
-
-                <!-- User Details -->
-                <div  class="top-bar">
-                    <h5 class="mb-1"><?php echo ucfirst($user['user_name']); ?></h5>
-                    <p class="mb-1 text-muted"><?php echo ucfirst($user['role']); ?></p>
-                    <p class="mb-0 text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
-                </div>
-                <!-- In-Time and Out-Time Buttons -->
-                <form action="timesheet.php" method="POST">
-                    <?php if (!$hasInTime) { ?>
-                        <button type="submit" name="action" value="in_time" class="btn btn-primary">In-Time</button>
-                    <?php } elseif ($activeDay) { ?>
-                        <span id="clock" class="timer">Day Active...</span>
-                        <button type="submit" name="action" value="out_time" class="btn btn-danger">Out-Time</button>
-                    <?php } else { ?>
-                        <button type="submit" name="action" value="in_time" class="btn btn-primary">In-Time</button>
-                    <?php } ?>
-                </form>
-            </div>
-            <div class="card p-4 shadow-sm">
-                   
-                    
-                    <div class="d-flex justify-content-between align-items-center">
+            
+                 <div class="d-flex justify-content-between align-items-center">
 
                     <h2 class="mb-4">My tasks</h2>
                     <a href="tasks.php" class="btn btn-primary">Add Task</a>
 
                         </div>
-            <table class="table table-bordered table-striped">
+            <table id="timeSheetTable" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>User ID</th>
@@ -142,7 +73,7 @@ $stmt->close();
                                 while ($task = $tasks->fetch_assoc()) { 
                                     $n++;
                                     echo "<tr>
-                                            <td>{$n}</td>
+                                            <td>{$task['user_id']}</td>
                                             <td>{$task['task_name']}</td>
                                             <td>{$task['start_time']}</td>
                                             <td>{$task['end_time']}</td>
@@ -165,7 +96,7 @@ $stmt->close();
             </div>
         </div>
     </div>
-
+    <?php include("footer.php");  ?>
     <!-- JavaScript to Auto-Hide Messages -->
 <script>
     // Auto-hide success message after 5 seconds
@@ -186,6 +117,7 @@ $stmt->close();
 
 
 
+   
 
     function updateClock() {
             // Get the current date and time
