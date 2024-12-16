@@ -18,7 +18,7 @@ $user = $users->fetch_assoc();
 
 
 
-$query = "SELECT * FROM tasks WHERE user_id = ?";
+$query = "SELECT *,TIMEDIFF(tasks.end_time, tasks.start_time) AS hours_worked FROM tasks WHERE user_id = ?";
 //     $query = "
 //     SELECT tasks.*, 
 //            users.*, 
